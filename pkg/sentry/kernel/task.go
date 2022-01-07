@@ -31,6 +31,7 @@ import (
 	ktime "gvisor.dev/gvisor/pkg/sentry/kernel/time"
 	"gvisor.dev/gvisor/pkg/sentry/platform"
 	"gvisor.dev/gvisor/pkg/sentry/seccheck"
+	pb "gvisor.dev/gvisor/pkg/sentry/seccheck/points/points_go_proto"
 	"gvisor.dev/gvisor/pkg/sentry/usage"
 	"gvisor.dev/gvisor/pkg/sentry/vfs"
 	"gvisor.dev/gvisor/pkg/sync"
@@ -881,21 +882,35 @@ func (t *Task) ResetKcov() {
 }
 
 // Preconditions: The TaskSet mutex must be locked.
-func (t *Task) loadSeccheckInfoLocked(req seccheck.TaskFieldSet, mask *seccheck.TaskFieldSet, info *seccheck.TaskInfo) {
-	if req.Contains(seccheck.TaskFieldThreadID) {
-		info.ThreadID = int32(t.k.tasks.Root.tids[t])
-		mask.Add(seccheck.TaskFieldThreadID)
+func (t *Task) loadSeccheckInfoLocked(req seccheck.FieldMask, info *pb.Common) {
+	if req.Contains(seccheck.FieldCommonTaskThreadID) {
+		if info.Invoker == nil {
+			info.Invoker = &pb.TaskInfo{}
+		}
+		info.Invoker.ThreadId = int32(t.k.tasks.Root.tids[t])
 	}
-	if req.Contains(seccheck.TaskFieldThreadStartTime) {
-		info.ThreadStartTime = t.startTime
-		mask.Add(seccheck.TaskFieldThreadStartTime)
+	if req.Contains(seccheck.FieldCommonTaskStartTime) {
+		if info.Invoker == nil {
+			info.Invoker = &pb.TaskInfo{}
+		}
+		info.Invoker.ThreadStartTime = t.startTime.Nanoseconds()
 	}
-	if req.Contains(seccheck.TaskFieldThreadGroupID) {
-		info.ThreadGroupID = int32(t.k.tasks.Root.tgids[t.tg])
-		mask.Add(seccheck.TaskFieldThreadGroupID)
+	if req.Contains(seccheck.FieldCommonTaskGroupID) {
+		if info.Invoker == nil {
+			info.Invoker = &pb.TaskInfo{}
+		}
+		info.Invoker.ThreadGroupId = int32(t.k.tasks.Root.tgids[t.tg])
 	}
-	if req.Contains(seccheck.TaskFieldThreadGroupStartTime) {
-		info.ThreadGroupStartTime = t.tg.leader.startTime
-		mask.Add(seccheck.TaskFieldThreadGroupStartTime)
+	if req.Contains(seccheck.FieldCommonTaskThreadGroupStartTime) {
+		if info.Invoker == nil {
+			info.Invoker = &pb.TaskInfo{}
+		}
+		info.Invoker.ThreadGroupStartTime = t.tg.leader.startTime.Nanoseconds()
+	}
+	if req.Contains(seccheck.FieldCommonTaskContainerID) {
+		if info.Invoker == nil {
+			info.Invoker = &pb.TaskInfo{}
+		}
+		info.Invoker.ContainerId = t.tg.leader.ContainerID()
 	}
 }

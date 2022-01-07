@@ -271,6 +271,7 @@ go_library(
         "//pkg/sentry/pgalloc",
         "//pkg/sentry/platform",
         "//pkg/sentry/seccheck",
+        "//pkg/sentry/seccheck/points:points_go_proto",
         "//pkg/sentry/socket/netlink/port",
         "//pkg/sentry/socket/unix/transport",
         "//pkg/sentry/time",

@@ -24,9 +24,9 @@ import (
 func Override() {
 	// Override AMD64.
 	s := linux.AMD64
-	s.Table[0] = syscalls.Supported("read", Read)
+	s.Table[0] = syscalls.SupportedPoint("read", Read, linux.PointRead)
 	s.Table[1] = syscalls.Supported("write", Write)
-	s.Table[2] = syscalls.Supported("open", Open)
+	s.Table[2] = syscalls.SupportedPoint("open", Open, linux.PointOpen)
 	s.Table[3] = syscalls.Supported("close", Close)
 	s.Table[4] = syscalls.Supported("stat", Stat)
 	s.Table[5] = syscalls.Supported("fstat", Fstat)
@@ -46,7 +46,7 @@ func Override() {
 	s.Table[33] = syscalls.Supported("dup2", Dup2)
 	s.Table[40] = syscalls.Supported("sendfile", Sendfile)
 	s.Table[41] = syscalls.Supported("socket", Socket)
-	s.Table[42] = syscalls.Supported("connect", Connect)
+	s.Table[42] = syscalls.SupportedPoint("connect", Connect, linux.PointConnect)
 	s.Table[43] = syscalls.Supported("accept", Accept)
 	s.Table[44] = syscalls.Supported("sendto", SendTo)
 	s.Table[45] = syscalls.Supported("recvfrom", RecvFrom)
@@ -118,7 +118,7 @@ func Override() {
 	s.Table[253] = syscalls.PartiallySupported("inotify_init", InotifyInit, "inotify events are only available inside the sandbox.", nil)
 	s.Table[254] = syscalls.PartiallySupported("inotify_add_watch", InotifyAddWatch, "inotify events are only available inside the sandbox.", nil)
 	s.Table[255] = syscalls.PartiallySupported("inotify_rm_watch", InotifyRmWatch, "inotify events are only available inside the sandbox.", nil)
-	s.Table[257] = syscalls.Supported("openat", Openat)
+	s.Table[257] = syscalls.SupportedPoint("openat", Openat, linux.PointOpenat)
 	s.Table[258] = syscalls.Supported("mkdirat", Mkdirat)
 	s.Table[259] = syscalls.Supported("mknodat", Mknodat)
 	s.Table[260] = syscalls.Supported("fchownat", Fchownat)

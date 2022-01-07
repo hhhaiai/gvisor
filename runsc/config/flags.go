@@ -69,6 +69,7 @@ func RegisterFlags(flagSet *flag.FlagSet) {
 	flagSet.Bool("cpu-num-from-quota", false, "set cpu number to cpu quota (least integer greater or equal to quota value, but not less than 2)")
 	flagSet.Bool("oci-seccomp", false, "Enables loading OCI seccomp filters inside the sandbox.")
 	flagSet.Var(defaultControlConfig(), "controls", "Sentry control endpoints.")
+	flagSet.String("event-hook", "", "TODO: path to script. Used as UDS path for convenience for now.")
 
 	// Flags that control sandbox runtime behavior: FS related.
 	flagSet.Var(fileAccessTypePtr(FileAccessExclusive), "file-access", "specifies which filesystem validation to use for the root mount: exclusive (default), shared.")

@@ -12,19 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build arm64
+// +build arm64
+
 package seccheck
 
-import (
-	"gvisor.dev/gvisor/pkg/context"
-	pb "gvisor.dev/gvisor/pkg/sentry/seccheck/points/points_go_proto"
+// TODO(fvoznika): Replace this with actual event metadata. Note that this order
+// is wrong for arm64.
+const (
+	PointSyscallRead uintptr = iota
+	PointSyscallWrite
+	PointSyscallOpen
 )
-
-// Clone is called at the Clone checkpoint.
-func (s *State) Clone(ctx context.Context, fields FieldSet, info *pb.CloneInfo) error {
-	for _, c := range s.getCheckers() {
-		if err := c.Clone(ctx, fields, info); err != nil {
-			return err
-		}
-	}
-	return nil
-}

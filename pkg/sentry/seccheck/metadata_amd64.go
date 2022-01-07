@@ -1,4 +1,4 @@
-// Copyright 2018 The gVisor Authors.
+// Copyright 2022 The gVisor Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build go1.1
-// +build go1.1
+//go:build amd64
+// +build amd64
 
-package eventchannel
+package seccheck
 
-import (
-	"google.golang.org/protobuf/types/known/anypb"
+func init() {
+	addSyscallPoint(0, "read", []FieldDesc{
+		{
+			ID:   FieldSyscallPath,
+			Name: "fd_path",
+		},
+	})
+	addSyscallPoint(2, "open", nil)
+	addSyscallPoint(42, "connect", []FieldDesc{
+		{
+			ID:   FieldSyscallPath,
+			Name: "fd_path",
+		},
+	})
+	addSyscallPoint(257, "openat", []FieldDesc{
+		{
+			ID:   FieldSyscallPath,
+			Name: "fd_path",
+		},
+	})
 
-	"google.golang.org/protobuf/proto"
-)
-
-func newAny(m proto.Message) (*anypb.Any, error) {
-	return anypb.New(m)
-}
-
-func emptyAny() *anypb.Any {
-	var any anypb.Any
-	return &any
+	for i := 0; i <= 441; i++ {
+		addRawSyscallPoint(uintptr(i))
+	}
 }

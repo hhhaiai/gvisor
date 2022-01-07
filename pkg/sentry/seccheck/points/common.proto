@@ -1,4 +1,4 @@
-// Copyright 2021 The gVisor Authors.
+// Copyright 2022 The gVisor Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package seccheck
+syntax = "proto3";
 
-import (
-	"gvisor.dev/gvisor/pkg/context"
-	pb "gvisor.dev/gvisor/pkg/sentry/seccheck/points/points_go_proto"
-)
+package gvisor.common;
 
-// Clone is called at the Clone checkpoint.
-func (s *State) Clone(ctx context.Context, fields FieldSet, info *pb.CloneInfo) error {
-	for _, c := range s.getCheckers() {
-		if err := c.Clone(ctx, fields, info); err != nil {
-			return err
-		}
-	}
-	return nil
+import "google/protobuf/timestamp.proto";
+
+message TaskInfo {
+  int32 thread_id = 1;
+
+  int64 thread_start_time = 2;
+
+  int32 thread_group_id = 3;
+
+  int64 thread_group_start_time = 4;
+
+  string container_id = 5;
+}
+
+message Credentials {
+  uint32 real_uid = 1;
+  uint32 effective_uid = 2;
+  uint32 saved_uid = 3;
+
+  uint32 real_gid = 4;
+  uint32 effective_gid = 5;
+  uint32 saved_gid = 6;
+  // ...
+}
+
+message Common {
+  TaskInfo invoker = 1;
+  Credentials credentials = 2;
 }

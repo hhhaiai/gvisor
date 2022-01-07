@@ -1,0 +1,27 @@
+{
+  "name": "Default",
+  "points": [{
+    "name": "container/start"
+  }, {
+    "name": "syscall/openat/enter"
+  }, {
+    "name": "syscall/openat/exit"
+   }, {
+    "name": "syscall/read/enter",
+    "optional_fields": [ "fd_path" ],
+    "context_fields": [ "container_id", "thread_id" ]
+  }, {
+    "name": "syscall/read/exit"
+  }, {
+    "name": "syscall/1/enter",
+    "context_fields": [ "container_id" ]
+  }, {
+    "name": "syscall/1/exit"
+  }],
+  "sinks": [{
+    "name": "remote",
+    "config": {
+      "endpoint": "/tmp/gvisor_events.sock"
+    }
+  }]
+}

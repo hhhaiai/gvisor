@@ -12,19 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package seccheck
+package boot
 
 import (
-	"gvisor.dev/gvisor/pkg/context"
-	pb "gvisor.dev/gvisor/pkg/sentry/seccheck/points/points_go_proto"
+	"encoding/json"
+
+	"gvisor.dev/gvisor/pkg/fd"
+	"gvisor.dev/gvisor/pkg/sentry/seccheck"
+
+	_ "gvisor.dev/gvisor/pkg/sentry/seccheck/checkers/remote"
 )
 
-// Clone is called at the Clone checkpoint.
-func (s *State) Clone(ctx context.Context, fields FieldSet, info *pb.CloneInfo) error {
-	for _, c := range s.getCheckers() {
-		if err := c.Clone(ctx, fields, info); err != nil {
-			return err
+func setupSeccheck(configFD int, sinkFDs []int) error {
+	decoder := json.NewDecoder(fd.New(configFD))
+	var session seccheck.SessionConfig
+	if err := decoder.Decode(&session); err != nil {
+		return err
+	}
+	for i, sinkFD := range sinkFDs {
+		if sinkFD >= 0 {
+			session.Sinks[i].FD = fd.New(sinkFD)
 		}
 	}
-	return nil
+	return seccheck.Configure(&session)
 }

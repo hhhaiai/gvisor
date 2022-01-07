@@ -24,6 +24,7 @@ import (
 	"gvisor.dev/gvisor/pkg/hostarch"
 	"gvisor.dev/gvisor/pkg/sentry/inet"
 	"gvisor.dev/gvisor/pkg/sentry/seccheck"
+	pb "gvisor.dev/gvisor/pkg/sentry/seccheck/points/points_go_proto"
 	"gvisor.dev/gvisor/pkg/usermem"
 )
 
@@ -247,8 +248,8 @@ func (t *Task) Clone(args *linux.CloneArgs) (ThreadID, *SyscallControl, error) {
 	defer nt.Start(tid)
 
 	if seccheck.Global.Enabled(seccheck.PointClone) {
-		mask, info := getCloneSeccheckInfo(t, nt, args)
-		if err := seccheck.Global.Clone(t, mask, &info); err != nil {
+		mask, info := getCloneSeccheckInfo(t, nt)
+		if err := seccheck.Global.Clone(t, mask, info); err != nil {
 			// nt has been visible to the rest of the system since NewTask, so
 			// it may be blocking execve or a group stop, have been notified
 			// for group signal delivery, had children reparented to it, etc.
@@ -306,20 +307,25 @@ func (t *Task) Clone(args *linux.CloneArgs) (ThreadID, *SyscallControl, error) {
 	return ntid, nil, nil
 }
 
-func getCloneSeccheckInfo(t, nt *Task, args *linux.CloneArgs) (seccheck.CloneFieldSet, seccheck.CloneInfo) {
-	req := seccheck.Global.CloneReq()
-	info := seccheck.CloneInfo{
-		Credentials: t.Credentials(),
-		Args:        *args,
-	}
-	var mask seccheck.CloneFieldSet
-	mask.Add(seccheck.CloneFieldCredentials)
-	mask.Add(seccheck.CloneFieldArgs)
+func getCloneSeccheckInfo(t, nt *Task) (seccheck.FieldSet, *pb.CloneInfo) {
+	fields := seccheck.Global.GetFieldSet(seccheck.PointClone)
+
 	t.k.tasks.mu.RLock()
 	defer t.k.tasks.mu.RUnlock()
-	t.loadSeccheckInfoLocked(req.Invoker, &mask.Invoker, &info.Invoker)
-	nt.loadSeccheckInfoLocked(req.Created, &mask.Created, &info.Created)
-	return mask, info
+	info := &pb.CloneInfo{
+		CreatedThreadId:        int32(nt.k.tasks.Root.tids[t]),
+		CreatedThreadStartTime: nt.startTime.Nanoseconds(),
+	}
+
+	// TODO(fvoznika): Move this block to a common location. Add pool for common
+	// proto fields.
+	if !fields.Context.Empty() {
+		info.Common = &pb.Common{}
+		t.Credentials().LoadSeccheckInfo(fields.Context, info.Common)
+		t.loadSeccheckInfoLocked(fields.Context, info.Common)
+	}
+
+	return fields, info
 }
 
 // maybeBeginVforkStop checks if a previously-started vfork child is still
