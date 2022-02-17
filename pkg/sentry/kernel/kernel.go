@@ -1095,9 +1095,6 @@ func (k *Kernel) Start() error {
 	k.extMu.Lock()
 	defer k.extMu.Unlock()
 
-	if k.globalInit == nil {
-		return fmt.Errorf("kernel contains no tasks")
-	}
 	if k.started {
 		return fmt.Errorf("kernel already started")
 	}
